@@ -1,12 +1,13 @@
-module.exports = {
+require('dotenv').config();
 
+module.exports = {
   development: {
     client: 'pg',
     connection: {
-      host: 'localhost',
-      database: 'policia_db',
-      user: 'postgres',
-      password: 'postgres'
+      host: process.env.POSTGRES_HOST || 'localhost',
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,
@@ -21,10 +22,10 @@ module.exports = {
   staging: {
     client: 'pg',
     connection: {
-      host: 'localhost',
-      database: 'my_db',
-      user: 'username',
-      password: 'password'
+      host: process.env.POSTGRES_HOST || 'localhost',
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,
@@ -39,10 +40,10 @@ module.exports = {
   production: {
     client: 'pg',
     connection: {
-      host: 'localhost',
-      database: 'my_db',
-      user: 'username',
-      password: 'password'
+      host: process.env.POSTGRES_HOST || 'localhost',
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,
@@ -53,5 +54,4 @@ module.exports = {
       tableName: 'knex_migrations'
     }
   }
-
 };

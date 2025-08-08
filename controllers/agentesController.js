@@ -1,36 +1,15 @@
 const agentesRepository = require('../repositories/agentesRepository');
 
 async function agenteGet(req, res) {
-    const { agente, cargo, sort } = req.query;
-    let agentes = await agentesRepository.findAll();
-
-    if (cargo) {
-        agentes = agentes.filter((a) => a.cargo === cargo);
-    }
-
-    if (sort) {
-        let campo = sort;
-        let ordem = 'asc';
-        if (sort.startsWith('-')) {
-            ordem = 'desc';
-            campo = sort.substring(1);
-        }
-
-        if (campo === 'dataDeIncorporacao') {
-            agentes.sort((a, b) => {
-                const dataA = new Date(a.dataDeIncorporacao).getTime();
-                const dataB = new Date(b.dataDeIncorporacao).getTime();
-                return ordem === 'asc' ? dataA - dataB : dataB - dataA;
-            });
-        }
-    }
-
+    const { cargo, sort } = req.query;
+    const agentes = await agentesRepository.findAll({ cargo, sort });
     return res.status(200).json(agentes);
 }
 
 async function listID(req, res) {
     const { id } = req.params;
-    const agente = await agentesRepository.findAgente(id);
+    const agenteIdInt = parseInt(id, 10);
+    const agente = await agentesRepository.findAgente(agenteIdInt);
 
     if (!agente) {
         return res.status(404).json({ message: 'Agente com essa ID não encontrado' });
@@ -72,67 +51,74 @@ async function addAgente(req, res) {
 
 async function updateAgenteFull(req, res) {
     const { id } = req.params;
+    const agenteIdInt = parseInt(id, 10);
     const novosDados = req.body;
 
     if (!novosDados || !id) {
-        return res.status(400).json({ message: 'Conteúdo inválido' });
+        return res.status(400).json({ message: 'ID do agente ou corpo da requisição ausente.' });
     }
 
-    if (!novosDados.nome || !novosDados.cargo || !novosDados.dataDeIncorporacao) {
-        return res.status(400).json({ message: 'Dados do agente incompletos ou inválidos' });
+    if (typeof novosDados.nome !== 'string' || !novosDados.nome.trim()) {
+        return res.status(400).json({ message: 'Nome do agente deve ser uma string não vazia.' });
     }
 
-    if (!isStatusValido(novosDados.status)) {
-        return res.status(400).json({ message: 'Status inválido' });
+    if (typeof novosDados.cargo !== 'string' || !novosDados.cargo.trim()) {
+        return res.status(400).json({ message: 'Cargo do agente deve ser uma string não vazia.' });
     }
 
-    if (!isDataValida(novosDados.dataDeIncorporacao)) {
-        return res.status(400).json({ message: 'Data de incorporação inválida' });
+    if (!novosDados.dataDeIncorporacao || !isDataValida(novosDados.dataDeIncorporacao)) {
+        return res.status(400).json({ message: 'Data de incorporação inválida ou ausente.' });
     }
 
-    const agenteExistente = await agentesRepository.findAgente(id);
+    const agenteExistente = await agentesRepository.findAgente(agenteIdInt);
     if (!agenteExistente) {
-        return res.status(404).json({ message: 'Agente não encontrado' });
+        return res.status(404).json({ message: 'Agente não encontrado.' });
     }
 
     if (novosDados.id) delete novosDados.id;
 
-    const agenteAtualizado = await agentesRepository.updateAgente(id, novosDados);
+    const agenteAtualizado = await agentesRepository.updateAgente(agenteIdInt, novosDados);
     return res.status(200).json(agenteAtualizado);
 }
 
 async function updateAgente(req, res) {
     const { id } = req.params;
+    const agenteIdInt = parseInt(id, 10);
     const novosDados = req.body;
 
     if (!novosDados || !id) {
-        return res.status(400).json({ message: 'Conteúdo inválido' });
+        return res.status(400).json({ message: 'ID do agente ou corpo da requisição ausente.' });
     }
 
-    const agenteExistente = await agentesRepository.findAgente(id);
+    const agenteExistente = await agentesRepository.findAgente(agenteIdInt);
     if (!agenteExistente) {
-        return res.status(404).json({ message: 'Agente não encontrado' });
+        return res.status(404).json({ message: 'Agente não encontrado.' });
     }
 
     if (novosDados.id) delete novosDados.id;
 
+    if (novosDados.nome && (typeof novosDados.nome !== 'string' || !novosDados.nome.trim())) {
+        return res.status(400).json({ message: 'Nome do agente deve ser uma string não vazia.' });
+    }
+
+    if (novosDados.cargo && (typeof novosDados.cargo !== 'string' || !novosDados.cargo.trim())) {
+        return res.status(400).json({ message: 'Cargo do agente deve ser uma string não vazia.' });
+    }
+
     if (novosDados.dataDeIncorporacao && !isDataValida(novosDados.dataDeIncorporacao)) {
-        return res.status(400).json({ message: 'Data de incorporação inválida' });
+        return res.status(400).json({ message: 'Data de incorporação inválida.' });
     }
 
-    if (novosDados.status && !isStatusValido(novosDados.status)) {
-        return res.status(400).json({ message: 'Status inválido' });
-    }
-
-    const agenteAtualizado = await agentesRepository.updateAgente(id, novosDados);
+    const agenteAtualizado = await agentesRepository.updateAgente(agenteIdInt, novosDados);
 
     return res.status(200).json(agenteAtualizado);
 }
 
 async function deleteAgente(req, res) {
     const { id } = req.params;
+    const agenteIdInt = parseInt(id, 10);
 
-    const agenteRemovido = await agentesRepository.removeAgente(id);
+    const agenteRemovido = await agentesRepository.removeAgente(agenteIdInt);
 
     if (!agenteRemovido) {
         return res.status(404).json({ message: 'Agente não encontrado' });

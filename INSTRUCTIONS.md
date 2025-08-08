@@ -6,15 +6,6 @@ Este documento explica como configurar o banco de dados PostgreSQL usando Docker
 
 Certifique-se de ter o Docker instalado e em execução na sua máquina.
 
-    Crie um arquivo .env na raiz do projeto com as seguintes variáveis de ambiente para o banco de dados:
-    Code snippet
-
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=policia_db
-
-Crie um arquivo docker-compose.yml na raiz do projeto (ou utilize o existente). Ele deve conter a configuração do serviço do PostgreSQL, utilizando as variáveis definidas no arquivo .env.
-
 Execute o comando para iniciar o container do banco de dados em modo detached (-d):
 Bash
 

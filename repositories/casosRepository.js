@@ -2,67 +2,104 @@ const db = require("../db/db")
 
 async function addCaso(object){
   try {
-    const created = await db("casos").insert(object, ["*"])
-    return created
-
+    const created = await db("casos").insert(object, ["*"]);
+    return created && created.length > 0 ? created[0] : false;
   } catch (error) {
-    console.log(error)
-    return false
+    console.log(error);
+    return false;
   }
 }
 
 async function findCaso(id){
   try {
-    const result = await db("casos").where({id: id})
-    if(!result){
-      console.log("Função findCaso do CasoRepository não encontrou um id equivalente ao pesquisado")
-      return false
+    const result = await db("casos").where({id: id});
+    if (!result || result.length === 0) {
+      console.log("Função findCaso do CasoRepository não encontrou um id equivalente ao pesquisado");
+      return false;
     }
-    return result[0]
-
+    return result[0];
   } catch (error) {
-    console.log(error)
-    return false
+    console.log(error);
+    return false;
   }
 }
 
 async function updateCaso(id, fieldsToUpdate){
   try {
-    const updated = await db("casos").where({id:id}).update(fieldsToUpdate, ["*"])
-    if(!updated){
-      console.log("Função updateCaso do CasoRepository não conseguiu atualizar o objeto")
+    const updated = await db("casos").where({id:id}).update(fieldsToUpdate, ["*"]);
+    if (!updated || updated.length === 0) {
+      console.log("Função updateCaso do CasoRepository não conseguiu atualizar o objeto");
+      return false;
     }
-    return updated[0]
-
+    return updated[0];
   } catch (error) {
-    console.log(error)
-    return false
+    console.log(error);
+    return false;
   }
 }
 
 async function removeCaso(id){
   try {
-    const deleted = await db("casos").where({id:id}).del()
-    if(!deleted){
-      console.log("Função removeCaso do CasosRepository não conseguiu remover o elemento")
-      return false
+    const deleted = await db("casos").where({id:id}).del();
+    if (!deleted) {
+      console.log("Função removeCaso do CasosRepository não conseguiu remover o elemento");
+      return false;
     }
-    return true
-
+    return true;
   } catch (error) {
-    console.log(error)
-    return false
+    console.log(error);
+    return false;
   }
 }
 
-async function findAll() {
+async function findAll(filters = {}) {
   try {
-    const casos = await db('casos').select('*');
-    return casos;
+    const query = db('casos');
+
+    if (filters.cargo) {
+      query.where('cargo', filters.cargo);
+    }
+
+    if (filters.sort) {
+      const direction = filters.sort.startsWith('-') ? 'desc' : 'asc';
+      const column = filters.sort.replace('-', '');
+      if (column === 'dataDeIncorporacao') {
+        query.orderBy(column, direction);
+      }
+    }
+
+    return await query.select('*');
   } catch (error) {
     console.log(error);
     return [];
   }
+}
+
+async function findFiltered(filters) {
+  const query = db('casos');
+
+  if (filters.status) {
+    query.where('status', filters.status);
+  }
+
+  if (filters.agente_id) {
+    query.where('agente_id', filters.agente_id);
+  }
+
+  if (filters.search) {
+    query.where(function() {
+      this.where('titulo', 'ilike', `%${filters.search}%`)
+          .orWhere('descricao', 'ilike', `%${filters.search}%`);
+    });
+  }
+
+  return await query.select('*');
+}
+
+async function agenteGet(req, res) {
+    const { cargo, sort } = req.query;
+    const agentes = await agentesRepository.findAll({ cargo, sort });
+    return res.status(200).json(agentes);
 }
 
 module.exports = {
@@ -70,6 +107,8 @@ module.exports = {
   findCaso,
   updateCaso,
   removeCaso,
-  findAll
+  findAll,
+  findFiltered,
+  agenteGet
 };
 
