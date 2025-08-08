@@ -194,6 +194,74 @@ Recomendamos que você teste a sua API com as ferramentas _Postman_ e _Insomnia_
 │ └── errorHandler.js
 │
 
+<<<<<<< HEAD
+=======
+  
+```
+
+### 1. Configurar o banco de dados PostgreSQL com Docker
+- Crie um arquivo .env na raíz do projeto para armazenar as seguintes variáveis de ambiente do nosso banco de dados:
+
+```
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=policia_db
+```
+**OBSERVAÇÃO: o uso de valores diferentes resultará em falhas nos testes**
+
+- Crie um arquivo `docker-compose.yml` na raiz do projeto para subir um container do PostgreSQL com um **volume persistente**, utilizando as váriaveis de ambiente para inserir dados sensíveis. Tenha certeza de seu container está rodando quando for desenvolver sua aplicação
+  
+### 2. Instalar o knex e criar o arquivo **`knexfile.js`**
+- Primeiro instale o knex localmente com `npm install knex pg`
+- Rode `npm install dotenv` para utilizarmos variáveis do arquivo .env
+- Agora, na **raiz do projeto**, devemos criar o knexfile.js com o comando `npx knex init`. Ele cria um arquivo de configurações de conexão com o PostgreSQL para diversos ambientes. Criaremos uma configuração de desenvolvimento para nos conectarmos ao banco que criamos e adicionaremos caminhos para a criação de migrations e seeds, edite esse arquivo para deixá-lo assim:
+
+```js
+// Update with your config settings.
+
+/**
+ * @type { Object.<string, import("knex").Knex.Config> }
+ */
+
+require('dotenv').config();
+
+module.exports = {
+
+  development: {
+    client: 'pg',
+    connection: {
+      host: '127.0.0.1',
+      port: 5432,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+    },
+    migrations: {
+        directory: './db/migrations',
+      },
+    seeds: {
+        directory: './db/seeds',
+      },
+  },
+  ci: {
+    client: 'pg',
+    connection: {
+      host: 'postgres', 
+      port: 5432,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+    },
+    migrations: {
+      directory: './db/migrations',
+    },
+    seeds: {
+      directory: './db/seeds',
+    },
+  }
+
+};
+>>>>>>> fb93f7b3c1276cff850898d5440d0e0c7b96b810
 
 ```
 
@@ -201,6 +269,7 @@ Recomendamos que você teste a sua API com as ferramentas _Postman_ e _Insomnia_
 
 ---
 
+<<<<<<< HEAD
 # 📙 Recurso de casos policiais: `/casos`
 
 Gerencia os **registros de crimes nos arquivos do departamento de polícia**.
@@ -332,13 +401,32 @@ Ganhe pontuação bônus por implementar um corpo de resposta personalizado para
   ]
 }
 
+=======
+```js
+const knexConfig = require('../knexfile');
+const knex = require('knex'); 
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const config = knexConfig[nodeEnv]; 
+
+const db = knex(config);
+
+module.exports = db;
+>>>>>>> fb93f7b3c1276cff850898d5440d0e0c7b96b810
 ```
+
+Crie a variável de ambiente ```NODE_ENV``` no arquivo ```.env``` para definir qual ambiente será usado. No caso, em desenvolvimento, o valor atribuído a ela deverá ser ```development```.
 
 ---
 
 # 📝 Orientações gerais para respostas
 
+<<<<<<< HEAD
 ### Requisições GET
+=======
+```bash
+npx knex migrate:make solution_migrations.js
+>>>>>>> fb93f7b3c1276cff850898d5440d0e0c7b96b810
 
 - As requisições do tipo `GET` devem retornar o status code **200 OK✅** e o objeto ou array de objetos do recurso.
 
@@ -347,9 +435,25 @@ Ganhe pontuação bônus por implementar um corpo de resposta personalizado para
 - As requisições do tipo `PUT` e `PATCH` devem retornar o status code **200 OK✅** e o objeto atualizado!
 - As requisições do tipo `POST` devem retornar o status code **201 CREATED✅** e o objeto criado!
 
+<<<<<<< HEAD
 ### Requisições DELETE
 
 - As requisições do tipo `DELETE`devem retornar o status code **204 NO CONTENT✅** e não devem possuir corpo de resposta.
+=======
+### 5. Criar Seeds
+- Crie seeds para popular as tabelas com pelo menos 2 agentes e 2 casos (Tem certeza de que o diretório que você se encontra no terminal é a raiz do projeto, do contrário você terá uma pasta `db/` duplicada):
+
+```bash
+npx knex seed:make solution_migrations.js
+
+```
+- Execute as seeds com:
+```bash
+npx knex seed:run
+```
+
+**OBSERVAÇÃO: Siga o nome do migration à risca para evitar falhas desnecessárias nos testes**
+>>>>>>> fb93f7b3c1276cff850898d5440d0e0c7b96b810
 
 ---
 
@@ -362,4 +466,24 @@ Ganhe pontuação bônus por implementar um corpo de resposta personalizado para
 
 ---
 
+<<<<<<< HEAD
 ### Desejamos êxito a todos nesta etapa e que todos tenham resultados à altura do desafio. 🎯
+=======
+### 7. Manter Rotas e Controladores
+- Todos os endpoints de **/casos** e **/agentes** devem continuar funcionando com as mesmas regras e validações.
+
+---
+
+### 8. Documentar de maneira simples em um arquivo INSTRUCTIONS.md
+Crie esse arquivo e adicione instruções claras para:
+- Subir o banco com Docker
+- Executar migrations
+- Rodar seeds
+
+
+---
+
+## **Bônus 🌟**
+- Adicionar um script `npm run db:reset` que derruba, recria, migra e popula o banco automaticamente.
+- Implementar endpoint `/agentes/:id/casos` para listar todos os casos atribuídos a um agente.
+>>>>>>> fb93f7b3c1276cff850898d5440d0e0c7b96b810
