@@ -1,4 +1,4 @@
-const agentesRepository = require('../repositories/OLDagentesRepository');
+const agentesRepository = require('../repositories/agentesRepository');
 
 function agenteGet(req, res) {
     const { agente, cargo, sort } = req.query;
