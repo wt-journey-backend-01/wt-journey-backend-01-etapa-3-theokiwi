@@ -1,49 +1,50 @@
 const casosRepository = require('../repositories/casosRepository');
 const agentesRepository = require('../repositories/agentesRepository');
 
-const STATUS_VALIDOS = ['solucionado', 'aberto'];
+async function getCasos(req, res, next) {
+    try {
+        const { status, agente_id, search } = req.query;
+        const filters = {};
+        if (status) filters.status = status;
+        if (agente_id) filters.agente_id = parseInt(agente_id, 10);
+        if (search) filters.search = search;
 
-function isStatusValido(status) {
-    return STATUS_VALIDOS.includes(status);
+        const casos = await casosRepository.findFiltered(filters);
+        return res.status(200).json(casos);
+    } catch (err) {
+        next(err);
+    }
 }
 
-async function getAllCasos(req, res) {
-    const casos = await casosRepository.findAll();
-    res.json(casos);
-}
+async function getAgenteCaso(req, res, next) {
+    try {
+        const { caso_id } = req.params;
+        const casoIdInt = parseInt(caso_id, 10);
+        const caso = await casosRepository.findCaso(casoIdInt);
 
-async function getCasos(req, res) {
-    const { status, agente_id, search } = req.query;
-    const filters = {};
+        if (!caso) {
+            const error = new Error('Caso não encontrado');
+            error.status = 404;
+            return next(error);
+        }
 
-    if (status) filters.status = status;
-    if (agente_id) filters.agente_id = parseInt(agente_id, 10);
-    if (search) filters.search = search;
+        if (!caso.agente_id) {
+            const error = new Error('Caso não possui agente associado');
+            error.status = 404;
+            return next(error);
+        }
 
-    const casos = await casosRepository.findFiltered(filters);
+        const agente = await agentesRepository.findAgente(caso.agente_id);
+        if (!agente) {
+            const error = new Error('Agente não encontrado');
+            error.status = 404;
+            return next(error);
+        }
 
-    return res.status(200).json(casos);
-}
-
-async function getAgenteCaso(req, res) {
-    const { caso_id } = req.params;
-    const casoIdInt = parseInt(caso_id, 10);
-    const caso = await casosRepository.findCaso(casoIdInt);
-
-    if (!caso) {
-        return res.status(404).json({ message: 'Caso não encontrado' });
+        return res.status(200).json(agente);
+    } catch (err) {
+        next(err);
     }
-
-    if (!caso.agente_id) {
-        return res.status(404).json({ message: 'Caso não possui agente associado' });
-    }
-
-    const agente = await agentesRepository.findAgente(caso.agente_id);
-    if (!agente) {
-        return res.status(404).json({ message: 'Agente não encontrado' });
-    }
-
-    return res.status(200).json(agente);
 }
 
 async function listID(req, res) {

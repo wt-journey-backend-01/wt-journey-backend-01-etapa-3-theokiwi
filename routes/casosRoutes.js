@@ -2,31 +2,30 @@ const express = require("express");
 const router = express.Router();
 const casosController = require("../controllers/casosController");
 
-// define a rota para /casos usando o método GET
-//router.get('/casos', casosController.seuMetodo)
+// GET /casos → Lista todos os casos registrados.
+// GET /casos?agente_id=... → Lista todos os casos atribuídos a um agente específico.
+// GET /:caso_id/agente → Retorna os dados completos do agente responsável por um caso específico.
+// GET /?status=aberto → Lista todos os casos em aberto.
+// GET /search?q=... → Pesquisa full-text por título ou descrição.
+router.get("/", casosController.getCasos);
+router.get("/:caso_id/agente", casosController.getAgenteCaso);
 
-//GET /casos → Lista todos os casos registrados.
-// GET /casos?agente_id=uuid → Lista todos os casos atribuídos à um agente específico.
-//  GET /casos/:caso_id/agente → Retorna os dados completos do agente responsável por um caso específico.
-//  GET /casos?status=aberto → Lista todos os casos em aberto.
-//  GET /casos/search?q=homicídio → Deve retornar todos os casos em que a palavra da query string aparece no titulo e/ou descricao, ou seja, uma pesquisa full-text
-router.get("/casos", casosController.getCasos);
-router.get("/casos/:caso_id/agente", casosController.getAgenteCaso);
+// GET /:id → Retorna os detalhes de um caso específico.
+router.get("/:id", casosController.listID);
 
-//GET /casos/:id → Retorna os detalhes de um caso específico.
-router.get("/casos/:id", casosController.listID);
+// POST / → Cria um novo caso.
+router.post('/', casosController.addCaso);
 
-//POST /casos → Cria um novo caso com os seguintes campos:
-router.post('/casos', casosController.addCaso);
+// PUT /:id → Atualiza os dados de um caso por completo.
+router.put("/:id", casosController.updateCasoFull);
 
-//PUT /casos/:id → Atualiza os dados de um caso por completo.
-router.put("/casos/:id", casosController.updateCasoFull);
+// PATCH /:id → Atualiza os dados de um caso parcialmente.
+router.patch("/:id", casosController.updateCaso);
 
-//PATCH /casos/:id → Atualiza os dados de um caso parcialmente.
-router.patch("/casos/:id", casosController.updateCaso);
+// DELETE /:id → Remove um caso do sistema.
+router.delete("/:id", casosController.deleteCaso);
 
-//DELETE /casos/:id → Remove um caso do sistema.
-router.delete("/casos/:id", casosController.deleteCaso);
+// GET /search → Pesquisa full-text.
+router.get('/search', casosController.searchCasos);
 
-router.get('/casos/search', casosController.searchCasos);
 module.exports = router;

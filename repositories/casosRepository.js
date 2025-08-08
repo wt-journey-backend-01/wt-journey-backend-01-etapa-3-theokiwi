@@ -52,23 +52,10 @@ async function removeCaso(id){
   }
 }
 
-async function findAll(filters = {}) {
+// Corrigido: filtros e ordenação válidos para casos
+async function findAll() {
   try {
-    const query = db('casos');
-
-    if (filters.cargo) {
-      query.where('cargo', filters.cargo);
-    }
-
-    if (filters.sort) {
-      const direction = filters.sort.startsWith('-') ? 'desc' : 'asc';
-      const column = filters.sort.replace('-', '');
-      if (column === 'dataDeIncorporacao') {
-        query.orderBy(column, direction);
-      }
-    }
-
-    return await query.select('*');
+    return await db('casos').select('*');
   } catch (error) {
     console.log(error);
     return [];
@@ -96,19 +83,12 @@ async function findFiltered(filters) {
   return await query.select('*');
 }
 
-async function agenteGet(req, res) {
-    const { cargo, sort } = req.query;
-    const agentes = await agentesRepository.findAll({ cargo, sort });
-    return res.status(200).json(agentes);
-}
-
 module.exports = {
   addCaso,
   findCaso,
   updateCaso,
   removeCaso,
   findAll,
-  findFiltered,
-  agenteGet
+  findFiltered
 };
 
