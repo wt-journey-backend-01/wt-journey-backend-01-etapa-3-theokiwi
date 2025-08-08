@@ -1,8 +1,8 @@
 const agentesRepository = require('../repositories/agentesRepository');
 
-function agenteGet(req, res) {
+async function agenteGet(req, res) {
     const { agente, cargo, sort } = req.query;
-    let agentes = agentesRepository.findAll();
+    let agentes = await agentesRepository.findAll();
 
     if (cargo) {
         agentes = agentes.filter((a) => a.cargo === cargo);
@@ -28,9 +28,9 @@ function agenteGet(req, res) {
     return res.status(200).json(agentes);
 }
 
-function listID(req, res) {
+async function listID(req, res) {
     const { id } = req.params;
-    const agente = agentesRepository.findAgente(id);
+    const agente = await agentesRepository.findAgente(id);
 
     if (!agente) {
         return res.status(404).json({ message: 'Agente com essa ID não encontrado' });
@@ -55,7 +55,7 @@ function isStatusValido(status) {
     return status === 'aberto' || status === 'solucionado';
 }
 
-function addAgente(req, res) {
+async function addAgente(req, res) {
     const newAgente = req.body;
 
     if (!newAgente || !newAgente.nome || !newAgente.cargo || !newAgente.dataDeIncorporacao) {
@@ -66,11 +66,11 @@ function addAgente(req, res) {
         return res.status(400).json({ message: 'Data de incorporação inválida' });
     }
 
-    const agenteAdded = agentesRepository.addAgente(newAgente);
+    const agenteAdded = await agentesRepository.addAgente(newAgente);
     return res.status(201).json(agenteAdded);
 }
 
-function updateAgenteFull(req, res) {
+async function updateAgenteFull(req, res) {
     const { id } = req.params;
     const novosDados = req.body;
 
@@ -90,18 +90,18 @@ function updateAgenteFull(req, res) {
         return res.status(400).json({ message: 'Data de incorporação inválida' });
     }
 
-    const agenteExistente = agentesRepository.findAgente(id);
+    const agenteExistente = await agentesRepository.findAgente(id);
     if (!agenteExistente) {
         return res.status(404).json({ message: 'Agente não encontrado' });
     }
 
     if (novosDados.id) delete novosDados.id;
 
-    const agenteAtualizado = agentesRepository.updateAgente({ id, ...novosDados });
+    const agenteAtualizado = await agentesRepository.updateAgente(id, novosDados);
     return res.status(200).json(agenteAtualizado);
 }
 
-function updateAgente(req, res) {
+async function updateAgente(req, res) {
     const { id } = req.params;
     const novosDados = req.body;
 
@@ -109,7 +109,7 @@ function updateAgente(req, res) {
         return res.status(400).json({ message: 'Conteúdo inválido' });
     }
 
-    const agenteExistente = agentesRepository.findAgente(id);
+    const agenteExistente = await agentesRepository.findAgente(id);
     if (!agenteExistente) {
         return res.status(404).json({ message: 'Agente não encontrado' });
     }
@@ -124,18 +124,15 @@ function updateAgente(req, res) {
         return res.status(400).json({ message: 'Status inválido' });
     }
 
-    const agenteAtualizado = agentesRepository.updateAgente({
-        ...agenteExistente,
-        ...novosDados,
-    });
+    const agenteAtualizado = await agentesRepository.updateAgente(id, novosDados);
 
     return res.status(200).json(agenteAtualizado);
 }
 
-function deleteAgente(req, res) {
+async function deleteAgente(req, res) {
     const { id } = req.params;
 
-    const agenteRemovido = agentesRepository.removeAgente(id);
+    const agenteRemovido = await agentesRepository.removeAgente(id);
 
     if (!agenteRemovido) {
         return res.status(404).json({ message: 'Agente não encontrado' });

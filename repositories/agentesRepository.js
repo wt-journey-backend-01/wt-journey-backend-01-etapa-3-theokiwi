@@ -32,10 +32,10 @@ async function findAgente(id){
 async function updateAgente(id, fieldsToUpdate){
   try {
     const updated = await db("agentes").where({id:id}).update(fieldsToUpdate, ["*"])
-    if(!result){
+    if(!updated){
       console.log("Função updateAgente do agenteRepository não conseguiu atualizar o objeto")
     }
-    return update[0]
+    return updated[0]
 
   } catch (error) {
     console.log(error)
@@ -57,4 +57,22 @@ async function removeAgente(id){
     return false
   }
 }
+
+async function findAll() {
+  try {
+    const agentes = await db('agentes').select('*');
+    return agentes;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
+module.exports = {
+  addAgente,
+  findAgente,
+  updateAgente,
+  removeAgente,
+  findAll
+};
 

@@ -29,10 +29,10 @@ async function findCaso(id){
 async function updateCaso(id, fieldsToUpdate){
   try {
     const updated = await db("casos").where({id:id}).update(fieldsToUpdate, ["*"])
-    if(!result){
+    if(!updated){
       console.log("Função updateCaso do CasoRepository não conseguiu atualizar o objeto")
     }
-    return update[0]
+    return updated[0]
 
   } catch (error) {
     console.log(error)
@@ -54,4 +54,22 @@ async function removeCaso(id){
     return false
   }
 }
+
+async function findAll() {
+  try {
+    const casos = await db('casos').select('*');
+    return casos;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
+module.exports = {
+  addCaso,
+  findCaso,
+  updateCaso,
+  removeCaso,
+  findAll
+};
 
