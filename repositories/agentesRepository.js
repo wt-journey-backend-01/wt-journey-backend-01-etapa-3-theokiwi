@@ -2,8 +2,8 @@ const db = require("../db/db.js")
 
 async function addAgente(object){
   try {
-    const created = await db("agentes").insert(object, ["*"]);
-    return created && created.length > 0 ? created[0] : false;
+    const [created] = await db("agentes").insert(object).returning('*');
+    return created || false;
   } catch (error) {
     console.log(error);
     return false;
@@ -26,12 +26,12 @@ async function findAgente(id){
 
 async function updateAgente(id, fieldsToUpdate){
   try {
-    const updated = await db("agentes").where({id:id}).update(fieldsToUpdate, ["*"]);
-    if (!updated || updated.length === 0) {
+    const [updated] = await db("agentes").where({id:id}).update(fieldsToUpdate).returning('*');
+    if (!updated) {
       console.log("Função updateAgente do agenteRepository não conseguiu atualizar o objeto");
       return false;
     }
-    return updated[0];
+    return updated;
   } catch (error) {
     console.log(error);
     return false;
@@ -64,7 +64,8 @@ async function findAll(filters = {}) {
     if (filters.sort) {
       const direction = filters.sort.startsWith('-') ? 'desc' : 'asc';
       const column = filters.sort.replace('-', '');
-      if (column === 'dataDeIncorporacao') {
+      // Permita ordenar por campos válidos
+      if (['id', 'nome', 'cargo', 'dataDeIncorporacao'].includes(column)) {
         query.orderBy(column, direction);
       }
     }
@@ -76,11 +77,37 @@ async function findAll(filters = {}) {
   }
 }
 
+async function findFiltered(filters) {
+  const query = db('casos');
+
+  if (filters.status) {
+    query.where('status', filters.status);
+  }
+
+  if (
+    filters.agente_id !== undefined &&
+    !isNaN(filters.agente_id) &&
+    Number.isInteger(filters.agente_id)
+  ) {
+    query.where('agente_id', filters.agente_id);
+  }
+
+  if (filters.search) {
+    query.where(function() {
+      this.where('titulo', 'ilike', `%${filters.search}%`)
+          .orWhere('descricao', 'ilike', `%${filters.search}%`);
+    });
+  }
+
+  return await query.select('*');
+}
+
 module.exports = {
   addAgente,
   findAgente,
   updateAgente,
   removeAgente,
-  findAll
+  findAll,
+  findFiltered
 };
 
