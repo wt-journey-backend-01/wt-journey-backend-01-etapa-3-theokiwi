@@ -13,24 +13,12 @@ async function getAllCasos(req, res, next) {
 async function getCasos(req, res, next) {
     try {
         const { status, agente_id, search } = req.query;
-        let casos = await casosRepository.findAll();
+        const filtros = {};
+        if (status) filtros.status = status;
+        if (agente_id) filtros.agente_id = parseInt(agente_id, 10);
+        if (search) filtros.search = search;
 
-        if (status) {
-            casos = casos.filter((caso) => caso.status === status);
-        }
-
-        if (agente_id) {
-            casos = casos.filter((caso) => caso.agente_id === parseInt(agente_id, 10));
-        }
-
-        if (search) {
-            casos = casos.filter(
-                (caso) =>
-                    caso.titulo.toLowerCase().includes(search.toLowerCase()) ||
-                    caso.descricao.toLowerCase().includes(search.toLowerCase())
-            );
-        }
-
+        const casos = await casosRepository.findFiltered(filtros);
         return res.status(200).json(casos);
     } catch (err) {
         next(err);
