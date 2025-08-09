@@ -1,4 +1,4 @@
-const db = require("../db/db.js")
+const db = require("../db/db.js");
 
 async function addAgente(object){
   try {
@@ -52,7 +52,7 @@ async function removeAgente(id){
   }
 }
 
-// Filtragem e ordenação direto no banco
+// Função correta para filtrar agentes
 async function findAll(filters = {}) {
   try {
     const query = db('agentes');
@@ -77,37 +77,10 @@ async function findAll(filters = {}) {
   }
 }
 
-async function findFiltered(filters) {
-  const query = db('casos');
-
-  if (filters.status) {
-    query.where('status', filters.status);
-  }
-
-  if (
-    filters.agente_id !== undefined &&
-    !isNaN(filters.agente_id) &&
-    Number.isInteger(filters.agente_id)
-  ) {
-    query.where('agente_id', filters.agente_id);
-  }
-
-  if (filters.search) {
-    query.where(function() {
-      this.where('titulo', 'ilike', `%${filters.search}%`)
-          .orWhere('descricao', 'ilike', `%${filters.search}%`);
-    });
-  }
-
-  return await query.select('*');
-}
-
 module.exports = {
   addAgente,
   findAgente,
   updateAgente,
   removeAgente,
-  findAll,
-  findFiltered
+  findAll
 };
-

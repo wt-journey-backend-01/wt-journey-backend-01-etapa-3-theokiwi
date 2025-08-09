@@ -1,6 +1,11 @@
 const casosRepository = require('../repositories/casosRepository');
 const agentesRepository = require('../repositories/agentesRepository');
 
+function validarAgenteId(agente_id) {
+    const id = parseInt(agente_id, 10);
+    return !isNaN(id) && id > 0;
+}
+
 async function getAllCasos(req, res, next) {
     try {
         const casos = await casosRepository.findAll();
@@ -14,8 +19,16 @@ async function getCasos(req, res, next) {
     try {
         const { status, agente_id, search } = req.query;
         const filtros = {};
+
         if (status) filtros.status = status;
-        if (agente_id) filtros.agente_id = parseInt(agente_id, 10);
+
+        if (agente_id) {
+            if (!validarAgenteId(agente_id)) {
+                return res.status(400).json({ message: 'Agente ID inválido' });
+            }
+            filtros.agente_id = parseInt(agente_id, 10);
+        }
+
         if (search) filtros.search = search;
 
         const casos = await casosRepository.findFiltered(filtros);
@@ -27,8 +40,12 @@ async function getCasos(req, res, next) {
 
 async function getAgenteCaso(req, res, next) {
     try {
-        const { caso_id } = req.params;
-        const caso = await casosRepository.findCaso(parseInt(caso_id, 10));
+        const caso_id = parseInt(req.params.caso_id, 10);
+        if (isNaN(caso_id) || caso_id <= 0) {
+            return res.status(400).json({ message: 'ID do caso inválido' });
+        }
+
+        const caso = await casosRepository.findCaso(caso_id);
 
         if (!caso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
@@ -51,8 +68,12 @@ async function getAgenteCaso(req, res, next) {
 
 async function listID(req, res, next) {
     try {
-        const { id } = req.params;
-        const caso = await casosRepository.findCaso(parseInt(id, 10));
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({ message: 'ID do caso inválido' });
+        }
+
+        const caso = await casosRepository.findCaso(id);
 
         if (!caso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
@@ -73,12 +94,16 @@ async function addCaso(req, res, next) {
             !casoData.titulo ||
             !casoData.descricao ||
             !casoData.status ||
-            !casoData.agente_id
+            casoData.agente_id === undefined
         ) {
             return res.status(400).json({ message: 'Dados do caso incompletos ou inválidos' });
         }
 
-        const agenteExiste = await agentesRepository.findAgente(casoData.agente_id);
+        if (!validarAgenteId(casoData.agente_id)) {
+            return res.status(400).json({ message: 'Agente ID inválido' });
+        }
+
+        const agenteExiste = await agentesRepository.findAgente(parseInt(casoData.agente_id, 10));
         if (!agenteExiste) {
             return res.status(404).json({ message: 'Agente responsável não encontrado' });
         }
@@ -93,16 +118,16 @@ async function addCaso(req, res, next) {
 
 async function updateCasoFull(req, res, next) {
     try {
-        const { id } = req.params;
+        const id = parseInt(req.params.id, 10);
         const novosDados = req.body;
 
-        if (!novosDados || !id) {
+        if (!novosDados || isNaN(id) || id <= 0) {
             return res.status(400).json({ message: 'Conteúdo inválido' });
         }
 
         if (novosDados.id) delete novosDados.id;
 
-        const caso = await casosRepository.findCaso(parseInt(id, 10));
+        const caso = await casosRepository.findCaso(id);
         if (!caso) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         }
@@ -111,17 +136,21 @@ async function updateCasoFull(req, res, next) {
             !novosDados.titulo ||
             !novosDados.descricao ||
             !novosDados.status ||
-            !novosDados.agente_id
+            novosDados.agente_id === undefined
         ) {
             return res.status(400).json({ message: 'Dados do caso incompletos ou inválidos' });
         }
 
-        const agenteExiste = await agentesRepository.findAgente(novosDados.agente_id);
+        if (!validarAgenteId(novosDados.agente_id)) {
+            return res.status(400).json({ message: 'Agente ID inválido' });
+        }
+
+        const agenteExiste = await agentesRepository.findAgente(parseInt(novosDados.agente_id, 10));
         if (!agenteExiste) {
             return res.status(404).json({ message: 'Agente responsável não encontrado' });
         }
 
-        const casoAtualizado = await casosRepository.updateCaso(parseInt(id, 10), novosDados);
+        const casoAtualizado = await casosRepository.updateCaso(id, novosDados);
 
         return res.status(200).json(casoAtualizado);
     } catch (err) {
@@ -131,28 +160,32 @@ async function updateCasoFull(req, res, next) {
 
 async function updateCaso(req, res, next) {
     try {
-        const { id } = req.params;
+        const id = parseInt(req.params.id, 10);
         const novosDados = req.body;
 
-        if (!novosDados || !id) {
+        if (!novosDados || isNaN(id) || id <= 0) {
             return res.status(400).json({ message: 'Conteúdo inválido' });
         }
 
-        const casoExistente = await casosRepository.findCaso(parseInt(id, 10));
+        const casoExistente = await casosRepository.findCaso(id);
         if (!casoExistente) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         }
 
         if (novosDados.id) delete novosDados.id;
 
-        if (novosDados.agente_id) {
-            const agenteExiste = await agentesRepository.findAgente(novosDados.agente_id);
+        if (novosDados.agente_id !== undefined) {
+            if (!validarAgenteId(novosDados.agente_id)) {
+                return res.status(400).json({ message: 'Agente ID inválido' });
+            }
+
+            const agenteExiste = await agentesRepository.findAgente(parseInt(novosDados.agente_id, 10));
             if (!agenteExiste) {
                 return res.status(404).json({ message: 'Agente responsável não encontrado' });
             }
         }
 
-        const casoAtualizado = await casosRepository.updateCaso(parseInt(id, 10), novosDados);
+        const casoAtualizado = await casosRepository.updateCaso(id, novosDados);
 
         return res.status(200).json(casoAtualizado);
     } catch (err) {
@@ -162,9 +195,12 @@ async function updateCaso(req, res, next) {
 
 async function deleteCaso(req, res, next) {
     try {
-        const { id } = req.params;
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({ message: 'ID do caso inválido' });
+        }
 
-        const casoRemovido = await casosRepository.removeCaso(parseInt(id, 10));
+        const casoRemovido = await casosRepository.removeCaso(id);
         if (!casoRemovido) {
             return res.status(404).json({ message: 'Caso não encontrado' });
         }
