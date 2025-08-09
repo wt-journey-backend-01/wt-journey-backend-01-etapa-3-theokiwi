@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 
 module.exports = {
   development: {
@@ -9,14 +10,14 @@ module.exports = {
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
     },
-    pool: {
-      min: 2,
-      max: 10
-    },
+    pool: { min: 2, max: 10 },
     migrations: {
-      directory: './migrations',
-      tableName: 'knex_migrations'
-    }
+      directory: path.join(__dirname, 'db', 'migrations'),
+      tableName: 'knex_migrations',
+    },
+    seeds: {
+      directory: path.join(__dirname, 'db', 'seeds'),
+    },
   },
 
   staging: {
@@ -27,14 +28,14 @@ module.exports = {
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
     },
-    pool: {
-      min: 2,
-      max: 10
-    },
+    pool: { min: 2, max: 10 },
     migrations: {
-      directory: './migrations',
-      tableName: 'knex_migrations'
-    }
+      directory: path.join(__dirname, 'db', 'migrations'),
+      tableName: 'knex_migrations',
+    },
+    seeds: {
+      directory: path.join(__dirname, 'db', 'seeds'),
+    },
   },
 
   production: {
@@ -45,13 +46,13 @@ module.exports = {
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
     },
-    pool: {
-      min: 2,
-      max: 10
-    },
+    pool: { min: 2, max: 10 },
     migrations: {
-      directory: './migrations',
-      tableName: 'knex_migrations'
-    }
-  }
+      directory: path.join(__dirname, 'db', 'migrations'),
+      tableName: 'knex_migrations',
+    },
+    seeds: {
+      directory: path.join(__dirname, 'db', 'seeds'),
+    },
+  },
 };
